@@ -1,0 +1,63 @@
+BESS / DATA-CENTER CAPACITY PLANNING -- SUMMER EXTENSION REPORT
+generated: 04-Jul-2026 17:39:40
+================================================================
+
+1. BASELINE OPTIMAL DESIGN (closed-form chance constraint)
+   demand target 500 kW, service probability 99.0% (eps = 0.01)
+   N = 100 racks | grid feed P_ref = 500.0 kW
+   BESS: 212.2 kW / 53.0 kWh | supercap: 0.050 kWh/rack (5.0 kWh total)
+   sigma_agg = 91.2 kW vs 200.0 kW unmultiplexed (54% reduction)
+   capex $989268 | grid energy $4380000 | total $5423422 over 10 yr
+
+2. LOAD TRACES (synthetic)
+   100 racks x 5760 steps, dt = 30 s (2.0 days)
+   aggregate: mean 499.2 kW, std 105.4 kW, peak 830.2 kW
+   burst component mean 2.08 kW (absorbed by the supercap layer)
+
+3. TIME-INDEXED DISPATCH VALIDATION (slow layer)
+   BESS 212.2 kW / 53.0 kWh, eta_rt = 0.92, SOC window 10-90%
+   band exceedance P[L > P_ref + P_bess]: 0.0075 (theory bound eps = 0.01)
+   unmet after SOC/efficiency limits  : 0.1505 of steps
+   peak unmet 297.0 kW | unmet energy 608.70 kWh | SOC at floor 14.83% of time
+   NOTE: unmet rate exceeds the marginal band rate -- energy/SOC
+   limits bind during persistent excursions; the closed-form
+   C_bess = P_bess*tau_bess window heuristic is the weak link.
+
+4. MONTE CARLO VALIDATION OF THE CHANCE CONSTRAINT
+   per-rack equicorrelated Gaussian trials, iid in time (marginal test)
+   rho    eps        empirical      SE         verdict
+   0.00   0.001      0.00099        0.00004    accurate
+   0.00   0.010      0.01016        0.00014    accurate
+   0.00   0.050      0.05161        0.00031    optimistic
+   0.20   0.001      0.00095        0.00004    accurate
+   0.20   0.010      0.00992        0.00014    accurate
+   0.20   0.050      0.05004        0.00031    accurate
+   0.50   0.001      0.00101        0.00004    accurate
+   0.50   0.010      0.00985        0.00014    accurate
+   0.50   0.050      0.04990        0.00031    accurate
+   8 of 9 scenarios within 3 standard errors of target.
+
+5. SENSITIVITY (from sensitivity_results.csv)
+   P_bess grows with rho: 46.5 kW at rho=0.0 -> 416.7 kW at rho=0.8
+   total cost across eps grid [0.001 .. 0.1]: $5317193 .. $6860961
+   doubling c_bess_P from baseline changes total by $63659
+   doubling c_bess_E from baseline changes total by $10610
+   (grid energy dominates total cost, so BESS-price sensitivity is small
+    in absolute terms but large relative to storage capex.)
+
+6. LIMITATIONS
+   - marginal (per-instant) chance constraint; no joint guarantee over
+     intervals; dispatch validation partially covers this gap
+   - C_bess = P_bess * tau_bess is a window heuristic, not derived from
+     the fluctuation spectrum
+   - Gaussian loads clipped at zero; real workloads are heavier-tailed
+   - flat energy price; no demand charges, TOU tariffs, or degradation
+   - supercap layer assumed to absorb all fast bursts perfectly
+
+7. RECOMMENDED NEXT STEPS
+   - fit mu, sigma, rho, burst statistics from real rack/GPU traces
+     (drop a CSV named real_load_data.csv to use it automatically)
+   - derive C_bess from the autocorrelation of measured fluctuations
+   - add an interval/joint chance constraint and re-validate
+   - add TOU tariff + demand charges; re-run sweeps
+   - model BESS degradation (cycle counting from dispatch throughput)
