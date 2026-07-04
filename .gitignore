@@ -1,0 +1,27 @@
+# MATLAB / Octave scratch
+*.asv
+*.m~
+*.autosave
+*.mex*
+octave-workspace
+slprj/
+
+# test-suite scratch output (removed automatically, but never commit it)
+outputs_test/
+outputs_shipped/
+
+# OS junk
+Thumbs.db
+Desktop.ini
+desktop.ini
+.DS_Store
+
+# editors / local tooling
+.claude/
+.vscode/
+*.swp
+*~
+
+# local environment files
+.env
+*.local
